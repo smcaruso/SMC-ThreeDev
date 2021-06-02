@@ -1,0 +1,274 @@
+*
+{
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+html,
+body
+{
+    overflow: hidden;
+    background: rgb(0,34,47);
+    background: linear-gradient(to bottom right, blue, red);
+    width: 100%;
+    height: 100%;
+}
+
+.webgl
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    outline: none;
+    z-index: 1
+    
+}
+
+.contact {
+    z-index: 2;
+    position: absolute;
+    bottom: 2em;
+    right: 2em;
+    width: 6em;
+    height: 6em;
+    border-radius: 3em;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: 0.25em 0.25em 0.5em rgba(0, 0, 0, 0.5);
+    color: white;
+    font-weight: 800;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.contact h1 {
+    margin-top: 0.65em;
+}
+
+.contact:hover {
+    background-color: rgba(180, 10, 10, 0.5);
+    cursor: pointer;
+}
+
+.titlebar {
+
+    position: absolute;
+    display: grid;
+    grid-template-columns: 5;
+    grid-template-rows: 1;
+    top: 1%;
+    width: 350px;
+    background-color: rgb(0,0,0);
+    color: rgb(255, 255, 255);
+    font-size: 16px;
+    font-weight: 200;
+    padding: 0px;
+    margin: 0px;
+    align-items: center;
+    box-shadow: 0.25em 0.25em 0.5em rgba(0, 0, 0, 0.5);
+    z-index: 2;
+    transition: top 2s;
+
+}
+
+.titlebar.loading {
+    top: 50%;
+    font-size: 12px;
+}
+
+.titlebar .title {
+
+    grid-column-start: 2;
+    grid-column-end: 6;
+    line-height: 18px;
+    padding: 12px 12px 12px 0px;
+
+}
+
+.titlebar .titlename {
+
+    font-weight: 600;
+    display: block;
+
+}
+
+.titlebar.logo {
+
+    grid-column-start: 1;
+    grid-column-end: 2;
+
+
+}
+.titlebar img {
+
+    margin-left: 30%;
+    margin-right: 5%;
+    margin-top: 8px;
+    margin-bottom: 4px;
+
+}
+
+.loadingbar {
+
+    margin-bottom: 0px;
+    height: 2px;
+    width: 100%;
+    background: #ffffff;
+    grid-column-start: 1;
+    grid-column-end: 6;
+    transform: scaleX(1);
+    transform-origin: top left;
+    transition: transform 0.5s;
+    will-change: transform;
+
+}
+
+.infopanel {
+    position: absolute;
+    box-sizing: border-box;
+    overflow: hidden auto;
+    width: 30%;
+    max-height: 80%;
+    left: 35%;
+    top: 10%;
+    display: block;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: rgb(255, 255, 255);
+    z-index: 2;
+    padding: 4.75em 2em 2em 2em;
+    box-shadow: 0.5em 0.5em 1em rgba(0, 0, 0, 0.5);
+    transform-origin: top;
+    transform: scale(1, 0.0);
+
+}
+
+.infopanel.open {
+    transform: scale(1, 1);
+    transition: transform 0.2s;
+}
+
+.infopanel.newpage {
+    width: 90%;
+    height: 90%;
+    max-height: 90%;
+    left: 5%;
+    top: 6%;
+}
+
+.infopanel.newpage iframe {
+
+    align-content: center;
+    align-self: center;
+    width: 100%;
+    height: 1080px;
+    max-height: 66%;
+}
+
+.infopanel h1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color:rgb(15, 15, 15);
+    color: rgb(230, 230, 230);
+    padding: 0.25em 0 0.25em 1em;
+    margin-bottom: 1em;
+
+}
+
+.infopanel .jumplink {
+
+    display: block;
+    align-content: center;
+    align-self: center;
+    background-color: rgb(255, 50, 50);
+    color:rgb(0, 0, 0);
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    padding: 1em;
+    margin-top: 1em;
+}
+
+.infopanel .jumplink:hover {
+    background-color: rgb(180, 10, 10);
+}
+
+.infopanel iframe {
+    width: 100%;
+    margin-top: 1em;
+}
+
+.infopanel h3 {
+    padding-top: 1em;
+}
+
+.infopanel p {
+    padding-top: 1em;
+}
+
+.infopanel ul {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 1em;
+    font-size: 85%;
+    line-height: 200%;
+}
+
+.infopanel img {
+    width: 100%;
+    padding-top: 1em;
+}
+
+.infopanel a {
+    color:rgb(224, 224, 224);
+}
+
+@media(max-width:1920px) {
+    
+    .infopanel {
+
+        width: 50%;
+        left: 25%;
+
+    }
+}
+
+@media(max-width:1000px) {
+
+    .titlebar {
+
+        width: 100%;
+        top: 0px;
+
+    }
+
+    .titlebar.loading {
+        top: 0px;
+        width: 100%;
+    }
+
+    .infopanel {
+        width: 75%;
+        left: 12.5%;
+        top: 11%;
+    }
+
+    .infopanel h1 {
+        font-size: 120%;
+    }
+
+    .contact {
+        bottom: 1em;
+        right: 1em;
+        width: 4em;
+        height: 4em;
+        border-radius: 2em;
+    }
+    
+    .contact h1 {
+        font-size: 125%;
+        margin-top: 0.75em;
+    }
+
+}

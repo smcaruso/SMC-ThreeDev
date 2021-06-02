@@ -1,0 +1,6 @@
+*.uni
+*.vdb
+/3D Assets/*
+/ssl cert/*
+/node_modules/*
+/SMC-ThreeVR/node_modules/*
