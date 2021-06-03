@@ -75,7 +75,7 @@ ViewportCamera.layers.enableAll();
 Scene.add(ViewportCamera);
 
 const CamDolly = new THREE.Object3D();
-CamDolly.position.set(-2, 1, 2);
+CamDolly.position.set(-3.5, 1, 3.5);
 CamDolly.rotateY(-Math.PI * 0.25);
 CamDolly.add(ViewportCamera);
 Scene.add(CamDolly);
@@ -124,7 +124,7 @@ function SetupVRControllers() {
     );
 
     const line = new THREE.Line( geometry );
-    line.scale.z = 1;
+    line.scale.z = 10;
     
     MotionControllers.right = BuildController( 0, line, ControllerModelFactory );
     MotionControllers.left = BuildController( 1, line, ControllerModelFactory );
@@ -170,7 +170,7 @@ function TraceFromController(controller) {
 }
 
 function LeftTriggerDown() {
-    MovementSpeed = 2;
+    MovementSpeed = 20;
 }
 
 function LeftTriggerUp() {
@@ -178,11 +178,12 @@ function LeftTriggerUp() {
 }
 
 function VRMoveForward() {
-    const quaternion = CamDolly.quaternion.clone();
-    CamDolly.quaternion.copy(DummyCam.getWorldQuaternion());
+    const DollyStartingQuat = CamDolly.quaternion.clone();
+    let CopyTempQuat = new THREE.Quaternion();
+    CamDolly.quaternion.copy(DummyCam.getWorldQuaternion(CopyTempQuat));
     CamDolly.translateZ(-clock.getDelta() * MovementSpeed);
-    CamDolly.position.y = 0;
-    CamDolly.quaternion.copy(quaternion);
+    // CamDolly.position.y = 0;
+    CamDolly.quaternion.copy(DollyStartingQuat);
 }
 
 // Loading overlay
@@ -657,13 +658,14 @@ let PointerStart, PointerEnd;
 
 function CheckIntersection(VRRaycaster) {
     
-    if (GLRenderer.xr.isPresenting) return;
-    if (VRRaycaster != null) {
+    if (GLRenderer.xr.isPresenting && VRRaycaster != null) {
         Intersects = VRRaycaster.intersectObject(SelectorBlocks, true);
-    } else {
-        UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-        Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
     }
+    
+    // else {
+    //     UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
+    //     Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
+    // }
 
     if (InactiveSelectors.children.length > 0 && Intersects.length == 0) {
         CheckMeshIntersections(VRRaycaster);
@@ -742,12 +744,17 @@ function OnPointerClick(event) {
     gsap.killTweensOf(ViewportCamera.position)
 
     if (Intersects.length > 0) {
-        gsap.to(OrbitControlSystem.target, {
-            x: Intersects[0].object.parent.position.x + Intersects[0].object.parent.targetOffset.x,
-            y: Intersects[0].object.parent.position.y + Intersects[0].object.parent.targetOffset.y,
-            z: Intersects[0].object.parent.position.z + Intersects[0].object.parent.targetOffset.z,
+        gsap.to(CamDolly.position, {
+            y: Intersects[0].object.parent.position.y - 1.6,
             duration: 1.5,
         });
+
+        // gsap.to(OrbitControlSystem.target, {
+        //     x: Intersects[0].object.parent.position.x + Intersects[0].object.parent.targetOffset.x,
+        //     y: Intersects[0].object.parent.position.y + Intersects[0].object.parent.targetOffset.y,
+        //     z: Intersects[0].object.parent.position.z + Intersects[0].object.parent.targetOffset.z,
+        //     duration: 1.5,
+        // });
         // gsap.to(ViewportCamera.position, {
         //     x: Intersects[0].object.parent.position.x + Intersects[0].object.parent.offsetX,
         //     y: Intersects[0].object.parent.position.y + Intersects[0].object.parent.offsetY,
@@ -794,12 +801,14 @@ function RestoreSelectors() {
 
 function CheckMeshIntersections(VRRaycaster) {
 
-    if (GLRenderer.xr.isPresenting) {
+    if (GLRenderer.xr.isPresenting && VRRaycaster != null) {
         Intersects = VRRaycaster.intersectObject(MeshObjects, true);
-    } else {
-        UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-        Intersects = UIRaycaster.intersectObject(MeshObjects, true);
     }
+    
+    // else {
+    //     UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
+    //     Intersects = UIRaycaster.intersectObject(MeshObjects, true);
+    // }
 
     if (Intersects.length > 0) {
         CanvasElement.style.cursor = "pointer";
@@ -955,13 +964,15 @@ function Tick() {
             CheckIntersection(VRRaycaster);
             VRMoveForward();
         }
+        if (VRRaycaster != null && VRRaycaster.intersectObject(SelectorBlocks, true).length === 0)  {
+            ClearSelections();
+        }
     }
 
     
     // Global ticks
-
-    // requestAnimationFrame(Tick);
     OrbitControlSystem.update();
+    gsap.ticker.tick();
     GLRenderer.render(Scene, ViewportCamera);
 
 }
