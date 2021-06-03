@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { gsap } from "gsap";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
-import { VRButton } from "three/examples/jsm/webxr/VRButton.js"
+import { VRButton } from "./VRButton.js"
 import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js"
 
 import LoadingScreenVertexShader from "/src/shaders/loader/vertex.glsl"
@@ -70,14 +70,25 @@ const Scene = new THREE.Scene();
 // Camera setup
 
 const ViewportCamera = new THREE.PerspectiveCamera(45, WindowSizes.width / WindowSizes.height, 0.1, 100);
-// ViewportCamera.position.set(-5.6, 1.2, 8);
-ViewportCamera.position.set(-5.6, -3, 12.75);
+// ViewportCamera.position.set(-5.6, -3, 12.75);
 ViewportCamera.layers.enableAll();
 Scene.add(ViewportCamera);
 
+const CamDolly = new THREE.Object3D();
+CamDolly.position.set(-2, 1, 2);
+CamDolly.rotateY(-Math.PI * 0.25);
+CamDolly.add(ViewportCamera);
+Scene.add(CamDolly);
+
+const DummyCam = new THREE.Object3D();
+ViewportCamera.add(DummyCam);
+
 // WebGL Renderer
 
-const GLRenderer = new THREE.WebGLRenderer({ canvas: CanvasElement });
+const GLRenderer = new THREE.WebGLRenderer({
+    canvas: CanvasElement,
+    antialias: true
+ });
 GLRenderer.setSize(WindowSizes.width, WindowSizes.height);
 GLRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 GLRenderer.setClearColor("rgb(240, 250, 255)"); //c8e0f5
@@ -88,16 +99,91 @@ GLRenderer.shadowMap.type = THREE.BasicShadowMap;
 
 // WebXR Setup
 
-document.body.appendChild(VRButton.createButton(GLRenderer));
+let MotionControllers = {};
+let TracingMatrix = new THREE.Matrix4();
+const VRRaycaster = new THREE.Raycaster();
+VRRaycaster.layers.set(3);
 
-const ControllerModelFactor = new XRControllerModelFactory();
-const MotionControllerA = GLRenderer.xr.getControllerGrip(0);
-MotionControllerA.add(ControllerModelFactor.createControllerModel(MotionControllerA));
+let MovementSpeed = 0;
 
-const MotionControllerB = GLRenderer.xr.getControllerGrip(1);
-MotionControllerB.add(ControllerModelFactor.createControllerModel(MotionControllerB));
+SetupVRControllers();
 
-Scene.add(MotionControllerA, MotionControllerB);
+function AddVRButton() {
+
+    const EnterVRButton = VRButton.createButton(GLRenderer);
+    document.body.appendChild(EnterVRButton);
+
+}
+
+function SetupVRControllers() {
+            
+    const ControllerModelFactory = new XRControllerModelFactory();
+
+    const geometry = new THREE.BufferGeometry().setFromPoints(
+        [ new THREE.Vector3( 0,0,0 ), new THREE.Vector3( 0,0,-1 ) ]
+    );
+
+    const line = new THREE.Line( geometry );
+    line.scale.z = 1;
+    
+    MotionControllers.right = BuildController( 0, line, ControllerModelFactory );
+    MotionControllers.left = BuildController( 1, line, ControllerModelFactory );
+
+    MotionControllers.right.controller.addEventListener("selectstart", OnPointerDown );
+    MotionControllers.right.controller.addEventListener("selectend", OnPointerClick );
+
+    MotionControllers.left.controller.addEventListener("selectstart", LeftTriggerDown );
+    MotionControllers.left.controller.addEventListener("selectend", LeftTriggerUp );
+    
+}
+
+function BuildController( index, line, modelFactory ){
+
+    const controller = GLRenderer.xr.getController( index );
+    
+    controller.userData.selectPressed = false;
+    controller.userData.index = index;
+    
+    if (line) controller.add( line.clone() );
+    
+    CamDolly.add( controller );
+    
+    let grip;
+    
+    if ( modelFactory ){
+        grip = GLRenderer.xr.getControllerGrip( index );
+        grip.add( modelFactory.createControllerModel( grip ));
+        CamDolly.add( grip );
+    }
+    
+    return { controller, grip };
+
+}
+
+function TraceFromController(controller) {
+
+    TracingMatrix.identity().extractRotation( controller.matrixWorld );
+
+    VRRaycaster.ray.origin.setFromMatrixPosition( controller.matrixWorld );
+    VRRaycaster.ray.direction.set( 0, 0, - 1 ).applyMatrix4(TracingMatrix);
+
+}
+
+function LeftTriggerDown() {
+    MovementSpeed = 2;
+}
+
+function LeftTriggerUp() {
+    MovementSpeed = 0;
+}
+
+function VRMoveForward() {
+    const quaternion = CamDolly.quaternion.clone();
+    CamDolly.quaternion.copy(DummyCam.getWorldQuaternion());
+    CamDolly.translateZ(-clock.getDelta() * MovementSpeed);
+    CamDolly.position.y = 0;
+    CamDolly.quaternion.copy(quaternion);
+}
 
 // Loading overlay
 
@@ -569,15 +655,18 @@ UIRaycaster.layers.set(3);
 let Intersects = [];
 let PointerStart, PointerEnd;
 
-function CheckIntersection() {
+function CheckIntersection(VRRaycaster) {
     
-    if (RaycastActive == false) return;
-
-    UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-    Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
+    if (GLRenderer.xr.isPresenting) return;
+    if (VRRaycaster != null) {
+        Intersects = VRRaycaster.intersectObject(SelectorBlocks, true);
+    } else {
+        UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
+        Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
+    }
 
     if (InactiveSelectors.children.length > 0 && Intersects.length == 0) {
-        CheckMeshIntersections();
+        CheckMeshIntersections(VRRaycaster);
         return;
     }
 
@@ -634,11 +723,15 @@ function OnPointerClick(event) {
         panel.classList.remove("open");
     });
 
-    PointerEnd = new THREE.Vector2(event.clientX, event.clientY);
-    if (PointerStart.distanceTo(PointerEnd) > 10) return;
-
-    UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-    Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
+    if (GLRenderer.xr.isPresenting) {
+        Intersects = VRRaycaster.intersectObject(SelectorBlocks, true);
+    } else {
+        PointerEnd = new THREE.Vector2(event.clientX, event.clientY);
+        if (PointerStart.distanceTo(PointerEnd) > 10) return;
+    
+        UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
+        Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
+    }
 
     if (InactiveSelectors.children.length && Intersects.length === 0) { ClickMeshObjects(event); }
 
@@ -655,12 +748,12 @@ function OnPointerClick(event) {
             z: Intersects[0].object.parent.position.z + Intersects[0].object.parent.targetOffset.z,
             duration: 1.5,
         });
-        gsap.to(ViewportCamera.position, {
-            x: Intersects[0].object.parent.position.x + Intersects[0].object.parent.offsetX,
-            y: Intersects[0].object.parent.position.y + Intersects[0].object.parent.offsetY,
-            z: Intersects[0].object.parent.position.z + Intersects[0].object.parent.offsetZ,
-            duration: 1.5,
-        });
+        // gsap.to(ViewportCamera.position, {
+        //     x: Intersects[0].object.parent.position.x + Intersects[0].object.parent.offsetX,
+        //     y: Intersects[0].object.parent.position.y + Intersects[0].object.parent.offsetY,
+        //     z: Intersects[0].object.parent.position.z + Intersects[0].object.parent.offsetZ,
+        //     duration: 1.5,
+        // });
     }
 }
 
@@ -699,10 +792,15 @@ function RestoreSelectors() {
 
 }
 
-function CheckMeshIntersections() {
-    
-    UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-    const Intersects = UIRaycaster.intersectObject(MeshObjects, true);
+function CheckMeshIntersections(VRRaycaster) {
+
+    if (GLRenderer.xr.isPresenting) {
+        Intersects = VRRaycaster.intersectObject(MeshObjects, true);
+    } else {
+        UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
+        Intersects = UIRaycaster.intersectObject(MeshObjects, true);
+    }
+
     if (Intersects.length > 0) {
         CanvasElement.style.cursor = "pointer";
         Intersects[0].object.material.color = new THREE.Color("rgb(200, 200, 220)");
@@ -781,6 +879,7 @@ function RemoveLoadingScreen() {
         duration: 3
     });
     LoadingOverlay.geometry.dispose();
+    AddVRButton();
 }
 
 function OpenContact() {
@@ -825,9 +924,10 @@ ContactButton.addEventListener("pointerup", OpenContact);
 
 // Animation loop
 
+GLRenderer.setAnimationLoop(Tick);
+
 const clock = new THREE.Clock()
 let time = Date.now();
-let progressRatio = 0;
 
 function Tick() {
 
@@ -848,16 +948,21 @@ function Tick() {
             AnimationContainer.Steve.rotateY(Math.PI * -0.4);
         }
     }
+
+    if (GLRenderer.xr.isPresenting){
+        if (MotionControllers){
+            TraceFromController(MotionControllers.right.controller);
+            CheckIntersection(VRRaycaster);
+            VRMoveForward();
+        }
+    }
+
     
     // Global ticks
 
-    requestAnimationFrame(Tick);
+    // requestAnimationFrame(Tick);
     OrbitControlSystem.update();
     GLRenderer.render(Scene, ViewportCamera);
-
-    GLRenderer.setAnimationLoop(function() {
-        GLRenderer.render(Scene, ViewportCamera);
-    });
 
 }
 
