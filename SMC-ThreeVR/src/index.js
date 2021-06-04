@@ -134,11 +134,15 @@ function SetupVRControllers() {
     MotionControllers.right = BuildController( 0, line, ControllerModelFactory );
     MotionControllers.left = BuildController( 1, null, ControllerModelFactory );
 
-    MotionControllers.right.controller.addEventListener("selectstart", OnPointerDown );
-    MotionControllers.right.controller.addEventListener("selectend", OnPointerClick );
+    MotionControllers.right.controller.addEventListener("selectstart", RightTriggerDown );
+    MotionControllers.right.controller.addEventListener("selectend", RightTriggerUp );
+    MotionControllers.right.controller.addEventListener("squeezestart", RightGripDown );
+    MotionControllers.right.controller.addEventListener("squeezeend", RightGripUp );
 
     MotionControllers.left.controller.addEventListener("selectstart", LeftTriggerDown );
     MotionControllers.left.controller.addEventListener("selectend", LeftTriggerUp );
+    MotionControllers.left.controller.addEventListener("squeezestart", LeftGripDown );
+    MotionControllers.left.controller.addEventListener("squeezeend", LeftGripUp );
     
 }
 
@@ -174,14 +178,6 @@ function TraceFromController(controller) {
 
 }
 
-function LeftTriggerDown() {
-    MovementSpeed = 20;
-}
-
-function LeftTriggerUp() {
-    MovementSpeed = 0;
-}
-
 function VRMoveForward() {
     const DollyStartingQuat = CamDolly.quaternion.clone();
     let CopyTempQuat = new THREE.Quaternion();
@@ -200,7 +196,6 @@ const LoadingOverlay = new THREE.Mesh(
         fragmentShader: LoadingScreenFragmentShader,
         uniforms: {
             uAlpha: {value: 1.0 },
-            // uTime: { value: 0.0 },
             uMouseX: { value: 0.5 },
             uMouseY: { value: 0.5 },
         },
@@ -216,12 +211,6 @@ const OrbitControlSystem = new OrbitControls(ViewportCamera, CanvasElement);
 const OrbitStartTarget = new THREE.Vector3(-0.365, 1.17, 0.54);
 OrbitControlSystem.enableDamping = true;
 OrbitControlSystem.target = OrbitStartTarget;
-// OrbitControlSystem.minDistance = 2;
-// OrbitControlSystem.maxDistance = 18;
-// OrbitControlSystem.minAzimuthAngle = -Math.PI * 0.5;
-// OrbitControlSystem.maxAzimuthAngle = Math.PI * 0.025;
-// OrbitControlSystem.maxPolarAngle = Math.PI * 0.6;
-// OrbitControlSystem.minPolarAngle = Math.PI * 0.25;
 
 //// LIGHTS ////
 
@@ -333,14 +322,14 @@ function CreateIntroPanel() {
     });
 
     InfoPanelBody.add(new ThreeMeshUI.Text({
-        content: "Use your controller to point, and select with the trigger. To close a text panel, point and select anywhere outside it.",
+        content: "Use your controller to point, and select with the trigger. To close a text panel, point and select anywhere outside it. Use the grip on your other controller to move panels.",
     }));
 
     IntroPanelContainer.add(InfoPanelHeadline, InfoPanelBody);
 
     // IntroPanelContainer.height = TotalHeight;
-    IntroPanelContainer.position.set(0, 1, -0.75);
-    IntroPanelContainer.rotateX(-Math.PI * 0.0625);
+    IntroPanelContainer.position.set(0, 0.65, -0.75);
+    IntroPanelContainer.rotateX(-Math.PI * 0.25);
     // IntroPanelContainer.scale.set(0.5, 0.5, 0.5);
     IntroPanelContainer.name = "TextPanel";
     CamDolly.add(IntroPanelContainer);
@@ -512,8 +501,7 @@ function CreateVRTextPanels(InfoPanel) {
     }
     
     VRTextContainer.height = TotalHeight;
-    VRTextContainer.position.set(0, 1.25
-        , -0.75);
+    VRTextContainer.position.set(0, 1.35, -0.45);
     VRTextContainer.rotateX(-Math.PI * 0.0625);
     VRTextContainer.scale.set(0.5, 0.5, 0.5);
     VRTextContainer.name = "TextPanel";
@@ -674,7 +662,6 @@ GLTFModelLoader.load(
                 Steve.children[i].material.roughness = 0.7;
                 Steve.children[i].material.envMap = ModernUrbanCubeMap;
                 Steve.children[i].material.envMapIntensity = 0.5;
-                // Steve.children[i].layers.set(2);
             }
         }
         
@@ -899,23 +886,13 @@ SelectorBlocks.name = "Inactive Selector Blocks";
 
 //// SELECTION  PROCESSING ////
 
-const UIRaycaster = new THREE.Raycaster();
-UIRaycaster.layers.set(3);
-
-// GLRenderer.domElement.style.touchAction = "none";
 let Intersects = [];
-let PointerStart, PointerEnd;
 
 function CheckIntersection(VRRaycaster) {
     
     if (GLRenderer.xr.isPresenting && VRRaycaster != null && RaycastActive) {
         Intersects = VRRaycaster.intersectObject(SelectorBlocks, true);
     }
-    
-    // else {
-    //     UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-    //     Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
-    // }
 
     if (InactiveSelectors.children.length > 0 && Intersects.length == 0) {
         CheckMeshIntersections(VRRaycaster);
@@ -969,56 +946,6 @@ function ClearSelections() {
        }
 }
 
-function OnPointerClick(event) {
-
-    // InfoPanels.forEach(function(panel) {
-    //     panel.classList.remove("open");
-    // });
-
-    RemoveInfoPanels();
-
-    if (GLRenderer.xr.isPresenting) {
-        Intersects = VRRaycaster.intersectObject(SelectorBlocks, true);
-    }
-    // else {
-    //     PointerEnd = new THREE.Vector2(event.clientX, event.clientY);
-    //     if (PointerStart.distanceTo(PointerEnd) > 10) return;
-    
-    //     UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-    //     Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
-    // }
-
-    if (InactiveSelectors.children.length && Intersects.length === 0) { ClickMeshObjects(event); }
-
-    if (InactiveSelectors.children.length > 0 && Intersects.length > 0) { RestoreSelectors() }
-
-    ClearSelections();
-    RemoveSelector();
-    gsap.killTweensOf(ViewportCamera.position)
-
-    if (Intersects.length > 0) {
-        gsap.to(CamDolly.position, {
-            x: -3.5 + (Intersects[0].object.parent.position.x * 0.5),
-            y: Intersects[0].object.parent.position.y * 0.5,
-            z: 3.5 + (Intersects[0].object.parent.position.z * 0.5),
-            duration: 2,
-        });
-
-        // gsap.to(OrbitControlSystem.target, {
-        //     x: Intersects[0].object.parent.position.x + Intersects[0].object.parent.targetOffset.x,
-        //     y: Intersects[0].object.parent.position.y + Intersects[0].object.parent.targetOffset.y,
-        //     z: Intersects[0].object.parent.position.z + Intersects[0].object.parent.targetOffset.z,
-        //     duration: 1.5,
-        // });
-        // gsap.to(ViewportCamera.position, {
-        //     x: Intersects[0].object.parent.position.x + Intersects[0].object.parent.offsetX,
-        //     y: Intersects[0].object.parent.position.y + Intersects[0].object.parent.offsetY,
-        //     z: Intersects[0].object.parent.position.z + Intersects[0].object.parent.offsetZ,
-        //     duration: 1.5,
-        // });
-    }
-}
-
 function RemoveInfoPanels() {
     
     let PanelStorage;
@@ -1044,26 +971,11 @@ function ClickMeshObjects(event) {
         return;
     }
     const Intersects = VRRaycaster.intersectObject(MeshObjects, true);
-    // UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-    // const Intersects = UIRaycaster.intersectObject(MeshObjects, true);
-    // InfoPanels.forEach(function(panel) {
-    //     panel.classList.remove("open");
-    // });
-
-    // RemoveInfoPanels();
 
     if (Intersects.length > 0) {
         CreateVRTextPanels(Intersects[0].object.infopanel);
-        // Intersects[0].object.infopanel.classList.add("open");
     }
 
-}
-
-function OnPointerDown(event) {
-    PointerStart = new THREE.Vector2(event.clientX, event.clientY);
-    if (event.pointerType == "touch") {
-        OnPointerMove(event);
-    }
 }
 
 function RemoveSelector() {
@@ -1087,11 +999,6 @@ function CheckMeshIntersections(VRRaycaster) {
     if (GLRenderer.xr.isPresenting && VRRaycaster != null) {
         Intersects = VRRaycaster.intersectObject(MeshObjects, true);
     }
-    
-    // else {
-    //     UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-    //     Intersects = UIRaycaster.intersectObject(MeshObjects, true);
-    // }
 
     if (Intersects.length > 0) {
         CanvasElement.style.cursor = "pointer";
@@ -1112,7 +1019,6 @@ function CheckMeshIntersections(VRRaycaster) {
                 duration: 0.125,
             });
         }
-        // Scene.add(Intersects[0].object.TitleText)
     } else {
         CanvasElement.style.cursor = "default";
         BakedMaterials.forEach(
@@ -1125,27 +1031,9 @@ function CheckMeshIntersections(VRRaycaster) {
                 item.TitleText.visible = false;
                 item.TitleText.rotation.y = -Math.PI * 0.125;
             }
-        )
+        );
     }
     
-}
-
-function OnPointerMove(event) {
-
-    if (event.isPrimary === false) return;
-
-    ScreenCursorPosition.x = (event.clientX / window.innerWidth) * 2 - 1;
-    ScreenCursorPosition.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    CheckIntersection();
-
-}
-
-function OnOrbit(event) {
-    if (ViewportCamera.position.distanceTo(OrbitStartTarget) > 10 && !gsap.isTweening(OrbitControlSystem.target)) {
-        RestoreSelectors();
-    }
-
 }
 
 function RemoveLoadingScreen() {
@@ -1194,29 +1082,93 @@ function OpenContact() {
     }
 }
 
+function ResizeUpdate() {
+        // Update sizes
+        WindowSizes.width = window.innerWidth;
+        WindowSizes.height = window.innerHeight;
+    
+        // Update camera
+        ViewportCamera.aspect = WindowSizes.width / WindowSizes.height;
+        ViewportCamera.updateProjectionMatrix();
+    
+        // Update renderer
+        GLRenderer.setSize(WindowSizes.width, WindowSizes.height);
+        GLRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+}
+
+//// VR INPUT DEVICES ////
+
+function LeftTriggerDown() {
+    MovementSpeed = 20;
+}
+
+function LeftTriggerUp() {
+    MovementSpeed = 0;
+}
+function RightTriggerUp(event) {
+
+    RemoveInfoPanels();
+
+    if (GLRenderer.xr.isPresenting) {
+        Intersects = VRRaycaster.intersectObject(SelectorBlocks, true);
+    }
+
+    if (InactiveSelectors.children.length && Intersects.length === 0) { ClickMeshObjects(event); }
+    if (InactiveSelectors.children.length > 0 && Intersects.length > 0) { RestoreSelectors() }
+
+    ClearSelections();
+    RemoveSelector();
+    gsap.killTweensOf(ViewportCamera.position)
+
+    if (Intersects.length > 0) {
+        gsap.to(CamDolly.position, {
+            x: -3.5 + (Intersects[0].object.parent.position.x * 0.5),
+            y: Intersects[0].object.parent.position.y * 0.5,
+            z: 3.5 + (Intersects[0].object.parent.position.z * 0.5),
+            duration: 2,
+        });
+    }
+}
+
+function RightTriggerDown(event) {
+    CheckIntersection(VRRaycaster);
+}
+
+function LeftGripDown(event) {
+    console.log(MotionControllers)
+    CamDolly.children.forEach(function(child) {
+        if (child.name === "TextPanel") {
+            MotionControllers.left.grip.attach(child);       
+        } else { return; }
+    });
+}
+
+function LeftGripUp(event) {
+    MotionControllers.left.grip.children.forEach(function(child) {
+        if (child.name === "TextPanel") {
+            CamDolly.attach(child);       
+        } else { return; }    });
+}
+
+function RightGripDown(event) {
+    console.log(MotionControllers)
+    CamDolly.children.forEach(function(child) {
+        if (child.name === "TextPanel") {
+            MotionControllers.right.grip.attach(child);       
+        } else { return; }
+    });
+}
+
+function RightGripUp(event) {
+    MotionControllers.right.grip.children.forEach(function(child) {
+        if (child.name === "TextPanel") {
+            CamDolly.attach(child);       
+        } else { return; }    });
+}
+
 // Event Listeners
 
-// GLRenderer.domElement.addEventListener("pointermove", OnPointerMove);
-// GLRenderer.domElement.addEventListener("pointerup", OnPointerClick);
-// GLRenderer.domElement.addEventListener("pointerdown", OnPointerDown);
-// OrbitControlSystem.addEventListener("change", OnOrbit);
-
-window.addEventListener('resize', function(){
-
-    // Update sizes
-    WindowSizes.width = window.innerWidth;
-    WindowSizes.height = window.innerHeight;
-
-    // Update camera
-    ViewportCamera.aspect = WindowSizes.width / WindowSizes.height;
-    ViewportCamera.updateProjectionMatrix();
-
-    // Update renderer
-    GLRenderer.setSize(WindowSizes.width, WindowSizes.height);
-    GLRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-});
-
+window.addEventListener('resize', ResizeUpdate);
 GLRenderer.xr.addEventListener("sessionstart", CreateIntroPanel);
 ContactButton.addEventListener("pointerup", OpenContact);
 
