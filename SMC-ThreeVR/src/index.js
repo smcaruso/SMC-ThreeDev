@@ -1,6 +1,7 @@
 // import "./style.css";
 import * as THREE from "three";
 import { gsap } from "gsap";
+import ThreeMeshUI from "three-mesh-ui"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { VRButton } from "./VRButton.js"
@@ -66,7 +67,6 @@ const FontLoader = new THREE.FontLoader();
 
 const Scene = new THREE.Scene();
 
-
 // Camera setup
 
 const ViewportCamera = new THREE.PerspectiveCamera(45, WindowSizes.width / WindowSizes.height, 0.1, 100);
@@ -119,15 +119,20 @@ function SetupVRControllers() {
             
     const ControllerModelFactory = new XRControllerModelFactory();
 
-    const geometry = new THREE.BufferGeometry().setFromPoints(
+    const LineGeo = new THREE.BufferGeometry().setFromPoints(
         [ new THREE.Vector3( 0,0,0 ), new THREE.Vector3( 0,0,-1 ) ]
     );
 
-    const line = new THREE.Line( geometry );
+    const LineMat = new THREE.LineBasicMaterial({
+        color: 0x00f0ff,
+        linewidth: 2
+    });
+
+    const line = new THREE.Line(LineGeo, LineMat);
     line.scale.z = 10;
     
     MotionControllers.right = BuildController( 0, line, ControllerModelFactory );
-    MotionControllers.left = BuildController( 1, line, ControllerModelFactory );
+    MotionControllers.left = BuildController( 1, null, ControllerModelFactory );
 
     MotionControllers.right.controller.addEventListener("selectstart", OnPointerDown );
     MotionControllers.right.controller.addEventListener("selectend", OnPointerClick );
@@ -211,12 +216,12 @@ const OrbitControlSystem = new OrbitControls(ViewportCamera, CanvasElement);
 const OrbitStartTarget = new THREE.Vector3(-0.365, 1.17, 0.54);
 OrbitControlSystem.enableDamping = true;
 OrbitControlSystem.target = OrbitStartTarget;
-OrbitControlSystem.minDistance = 2;
-OrbitControlSystem.maxDistance = 18;
-OrbitControlSystem.minAzimuthAngle = -Math.PI * 0.5;
-OrbitControlSystem.maxAzimuthAngle = Math.PI * 0.025;
-OrbitControlSystem.maxPolarAngle = Math.PI * 0.6;
-OrbitControlSystem.minPolarAngle = Math.PI * 0.25;
+// OrbitControlSystem.minDistance = 2;
+// OrbitControlSystem.maxDistance = 18;
+// OrbitControlSystem.minAzimuthAngle = -Math.PI * 0.5;
+// OrbitControlSystem.maxAzimuthAngle = Math.PI * 0.025;
+// OrbitControlSystem.maxPolarAngle = Math.PI * 0.6;
+// OrbitControlSystem.minPolarAngle = Math.PI * 0.25;
 
 //// LIGHTS ////
 
@@ -278,6 +283,175 @@ for (let material of BakedMaterials) {
     material.map.encoding = THREE.sRGBEncoding;
 };
 
+//// VR TEXT PANELS ////
+
+// https://github.com/felixmariotto/three-mesh-ui/wiki/API-documentation
+
+function CreateVRTextPanels(InfoPanel) {
+    
+    const VRTextContainer = new ThreeMeshUI.Block({
+        ref: "container",
+        backgroundColor: new THREE.Color(0x000000),
+        backgroundOpacity: 0.75,
+        borderRadius: 0.0,
+        padding: 0.025,
+        height: 2,
+        width: 1.25,
+        contentDirection: "column",
+        alignContent: "left",
+        justifyContent: "start"
+    });
+
+    let TotalHeight;
+
+    for (let node = 0; node < InfoPanel.childNodes.length; node++) {
+
+        let NodeBlock;
+
+        if (InfoPanel.childNodes[node].nodeName === "H1") {
+
+            NodeBlock = new ThreeMeshUI.Block({
+                height: 0.075,
+                width: 1.2,
+                margin: 0.0,
+                padding: 0.025,
+                backgroundOpacity: 0.75,
+                alignContent: "left",
+                justifyContent: "center",
+                fontFamily: "/msdf/Poppins-Bold-msdf.json",
+                fontTexture: "/msdf/Poppins-Bold.png",
+                fontSize: 0.05,
+            });
+    
+            NodeBlock.add(new ThreeMeshUI.Text({
+                content: InfoPanel.childNodes[node].innerText,
+            }));
+
+            TotalHeight += 0.1;
+
+        } else if (InfoPanel.childNodes[node].nodeName === "IMG") {
+            NodeBlock = new ThreeMeshUI.Block({
+                height: 0.55,
+                width: 1.15,
+                margin: 0.025,
+                padding: 0.0,
+                backgroundOpacity: 1,
+                borderRadius: 0.0,
+                backgroundSize: "stretch",
+                alignContent: "left",
+                justifyContent: "center",
+            });
+
+            new THREE.TextureLoader().load(InfoPanel.childNodes[node].currentSrc, function(texture) {
+                NodeBlock.set({backgroundTexture: texture});
+            });
+
+            TotalHeight += 0.2;
+
+        } else if (InfoPanel.childNodes[node].nodeName === "H3") {
+            NodeBlock = new ThreeMeshUI.Block({
+                height: 0.05,
+                width: 1.2,
+                margin: 0.0,
+                padding: 0.025,
+                backgroundOpacity: 0,
+                alignContent: "left",
+                justifyContent: "center",
+                fontFamily: "/msdf/Poppins-Bold-msdf.json",
+                fontTexture: "/msdf/Poppins-Bold.png",
+                fontSize: 0.025,
+            });
+    
+            NodeBlock.add(new ThreeMeshUI.Text({
+                content: InfoPanel.childNodes[node].innerText,
+            }));
+
+            TotalHeight += 0.05;
+
+        } else if (InfoPanel.childNodes[node].nodeName === "H4") {
+            NodeBlock = new ThreeMeshUI.Block({
+                height: 0.05,
+                width: 1.2,
+                margin: 0.0,
+                padding: 0.025,
+                backgroundOpacity: 0,
+                alignContent: "left",
+                justifyContent: "center",
+                fontFamily: "/msdf/Poppins-Regular-msdf.json",
+                fontTexture: "/msdf/Poppins-Regular.png",
+                fontSize: 0.025,
+            });
+    
+            NodeBlock.add(new ThreeMeshUI.Text({
+                content: InfoPanel.childNodes[node].innerText,
+            }));
+
+            TotalHeight += 0.05;
+
+        } else if (InfoPanel.childNodes[node].nodeName === "P"){
+            let BlockHeight;
+            if (InfoPanel.childNodes[node].firstChild != null) {
+                BlockHeight = InfoPanel.childNodes[node].firstChild.length * 0.0004;
+            } else {
+                BlockHeight = 0.0125;
+            }
+
+            NodeBlock = new ThreeMeshUI.Block({
+                height: BlockHeight,
+                width: 1.2,
+                margin: 0.0,
+                padding: 0.025,
+                backgroundOpacity: 0,
+                alignContent: "left",
+                justifyContent: "center",
+                fontFamily: "/msdf/Poppins-Regular-msdf.json",
+                fontTexture: "/msdf/Poppins-Regular.png",
+                fontSize: 0.025,
+            });
+
+            NodeBlock.add(new ThreeMeshUI.Text({
+                content: InfoPanel.childNodes[node].innerText,
+            }));
+
+            TotalHeight += BlockHeight;
+        } else if (InfoPanel.childNodes[node].nodeName === "UL") {
+
+            let BlockHeight = InfoPanel.childNodes[node].childNodes.length * 0.03;
+
+            NodeBlock = new ThreeMeshUI.Block({
+                height: BlockHeight,
+                width: 1.2,
+                margin: 0.0,
+                padding: 0.05,
+                backgroundOpacity: 0,
+                alignContent: "left",
+                justifyContent: "center",
+                fontFamily: "/msdf/Poppins-Regular-msdf.json",
+                fontTexture: "/msdf/Poppins-Regular.png",
+                fontSize: 0.025,
+            });
+            NodeBlock.add(new ThreeMeshUI.Text({
+                content: InfoPanel.childNodes[node].innerText,
+            }));
+
+
+            TotalHeight += BlockHeight;
+
+        }
+ 
+        if (NodeBlock != undefined) {
+            VRTextContainer.add(NodeBlock);
+        }
+    }
+    
+    VRTextContainer.height = TotalHeight;
+    VRTextContainer.position.set(0, 1.5, -1.25);
+    VRTextContainer.rotateX(-Math.PI * 0.0625);
+    VRTextContainer.name = "TextPanel";
+    CamDolly.add(VRTextContainer);
+
+}
+
 //// OBJECTS ////
 
 const MeshObjects = new THREE.Group();
@@ -293,6 +467,7 @@ const AboutSteveClickArea = new THREE.Mesh(
 AboutSteveClickArea.position.set(0.5, 1.8/2, -0.35);
 AboutSteveClickArea.name = "About Steve";
 AboutSteveClickArea.infopanel = AboutSteveInfoPanel;
+AboutSteveClickArea.layers.enable(3);
 AboutSteveClickArea.textOffset = new THREE.Vector3(0, 1, 0);
 MeshObjects.add(AboutSteveClickArea);
 
@@ -658,7 +833,7 @@ let PointerStart, PointerEnd;
 
 function CheckIntersection(VRRaycaster) {
     
-    if (GLRenderer.xr.isPresenting && VRRaycaster != null) {
+    if (GLRenderer.xr.isPresenting && VRRaycaster != null && RaycastActive) {
         Intersects = VRRaycaster.intersectObject(SelectorBlocks, true);
     }
     
@@ -721,19 +896,26 @@ function ClearSelections() {
 
 function OnPointerClick(event) {
 
-    InfoPanels.forEach(function(panel) {
-        panel.classList.remove("open");
+    // InfoPanels.forEach(function(panel) {
+    //     panel.classList.remove("open");
+    // });
+
+    CamDolly.children.forEach(function(child) {
+        if (child.name === "TextPanel") {
+            child.parent.remove(child);
+        }
     });
 
     if (GLRenderer.xr.isPresenting) {
         Intersects = VRRaycaster.intersectObject(SelectorBlocks, true);
-    } else {
-        PointerEnd = new THREE.Vector2(event.clientX, event.clientY);
-        if (PointerStart.distanceTo(PointerEnd) > 10) return;
-    
-        UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-        Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
     }
+    // else {
+    //     PointerEnd = new THREE.Vector2(event.clientX, event.clientY);
+    //     if (PointerStart.distanceTo(PointerEnd) > 10) return;
+    
+    //     UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
+    //     Intersects = UIRaycaster.intersectObject(SelectorBlocks, true);
+    // }
 
     if (InactiveSelectors.children.length && Intersects.length === 0) { ClickMeshObjects(event); }
 
@@ -745,8 +927,10 @@ function OnPointerClick(event) {
 
     if (Intersects.length > 0) {
         gsap.to(CamDolly.position, {
-            y: Intersects[0].object.parent.position.y - 1.6,
-            duration: 1.5,
+            x: -3.5 + (Intersects[0].object.parent.position.x * 0.5),
+            y: Intersects[0].object.parent.position.y * 0.5,
+            z: 3.5 + (Intersects[0].object.parent.position.z * 0.5),
+            duration: 2,
         });
 
         // gsap.to(OrbitControlSystem.target, {
@@ -765,13 +949,26 @@ function OnPointerClick(event) {
 }
 
 function ClickMeshObjects(event) {
-    UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
-    const Intersects = UIRaycaster.intersectObject(MeshObjects, true);
-    InfoPanels.forEach(function(panel) {
-        panel.classList.remove("open");
+    if (!GLRenderer.xr.isPresenting || VRRaycaster === null) {
+        return;
+    }
+    const Intersects = VRRaycaster.intersectObject(MeshObjects, true);
+    // UIRaycaster.setFromCamera(ScreenCursorPosition, ViewportCamera);
+    // const Intersects = UIRaycaster.intersectObject(MeshObjects, true);
+    // InfoPanels.forEach(function(panel) {
+    //     panel.classList.remove("open");
+    // });
+
+    CamDolly.children.forEach(function(child) {
+        if (child.name === "TextPanel") {
+            child.parent.remove(child);
+        }
     });
+
     if (Intersects.length > 0) {
-        Intersects[0].object.infopanel.classList.add("open");
+        CreateVRTextPanels(Intersects[0].object.infopanel);
+        console.log(CamDolly)
+        // Intersects[0].object.infopanel.classList.add("open");
     }
 
 }
@@ -871,7 +1068,11 @@ function RemoveLoadingScreen() {
             LoadingOverlay.material.uniforms.uAlpha,
             { 
                 duration: 2, 
-                value: 0
+                value: 0,
+                onComplete: function() {
+                    Scene.remove(LoadingOverlay);
+                    LoadingOverlay.geometry.dispose();
+                 }
             }
         );
         TitleBlock.innerHTML = `
@@ -887,6 +1088,7 @@ function RemoveLoadingScreen() {
         z: 8,
         duration: 3
     });
+    Scene.remove(LoadingOverlay);
     LoadingOverlay.geometry.dispose();
     AddVRButton();
 }
@@ -908,10 +1110,10 @@ function OpenContact() {
 
 // Event Listeners
 
-GLRenderer.domElement.addEventListener("pointermove", OnPointerMove);
-GLRenderer.domElement.addEventListener("pointerup", OnPointerClick);
-GLRenderer.domElement.addEventListener("pointerdown", OnPointerDown);
-OrbitControlSystem.addEventListener("change", OnOrbit);
+// GLRenderer.domElement.addEventListener("pointermove", OnPointerMove);
+// GLRenderer.domElement.addEventListener("pointerup", OnPointerClick);
+// GLRenderer.domElement.addEventListener("pointerdown", OnPointerDown);
+// OrbitControlSystem.addEventListener("change", OnOrbit);
 
 window.addEventListener('resize', function(){
 
@@ -971,6 +1173,7 @@ function Tick() {
 
     
     // Global ticks
+    ThreeMeshUI.update();
     OrbitControlSystem.update();
     gsap.ticker.tick();
     GLRenderer.render(Scene, ViewportCamera);
