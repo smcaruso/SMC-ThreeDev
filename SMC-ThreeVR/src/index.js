@@ -287,6 +287,72 @@ for (let material of BakedMaterials) {
 
 // https://github.com/felixmariotto/three-mesh-ui/wiki/API-documentation
 
+function CreateIntroPanel() {
+
+    const IntroPanelContainer = new ThreeMeshUI.Block({
+        ref: "container",
+        backgroundColor: new THREE.Color(0x000000),
+        backgroundOpacity: 0.75,
+        borderRadius: 0.0,
+        padding: 0.025,
+        height: 0.35,
+        width: 1.25,
+        contentDirection: "column",
+        alignContent: "left",
+        justifyContent: "start",
+    });
+
+    const InfoPanelHeadline = new ThreeMeshUI.Block({
+        height: 0.085,
+        width: 1.2,
+        margin: 0.0,
+        padding: 0.05,
+        backgroundOpacity: 0.75,
+        alignContent: "left",
+        justifyContent: "center",
+        fontFamily: "/msdf/Poppins-Bold-msdf.json",
+        fontTexture: "/msdf/Poppins-Bold.png",
+        fontSize: 0.075,
+    })
+
+    InfoPanelHeadline.add(new ThreeMeshUI.Text({
+        content: "Hi, welcome!",
+    }));
+
+    const InfoPanelBody = new ThreeMeshUI.Block({
+        height: 0.2,
+        width: 1.2,
+        margin: 0.0,
+        padding: 0.05,
+        backgroundOpacity: 0,
+        alignContent: "left",
+        justifyContent: "center",
+        fontFamily: "/msdf/Poppins-Regular-msdf.json",
+        fontTexture: "/msdf/Poppins-Regular.png",
+        fontSize: 0.05,
+    });
+
+    InfoPanelBody.add(new ThreeMeshUI.Text({
+        content: "Use your controller to point, and select with the trigger. To close a text panel, point and select anywhere outside it.",
+    }));
+
+    IntroPanelContainer.add(InfoPanelHeadline, InfoPanelBody);
+
+    // IntroPanelContainer.height = TotalHeight;
+    IntroPanelContainer.position.set(0, 1, -0.75);
+    IntroPanelContainer.rotateX(-Math.PI * 0.0625);
+    // IntroPanelContainer.scale.set(0.5, 0.5, 0.5);
+    IntroPanelContainer.name = "TextPanel";
+    CamDolly.add(IntroPanelContainer);
+
+    gsap.fromTo(IntroPanelContainer.scale,
+        {y: 0},
+        {y: 1,
+        duration: 0.5}
+    );
+
+}
+
 function CreateVRTextPanels(InfoPanel) {
     
     const VRTextContainer = new ThreeMeshUI.Block({
@@ -299,7 +365,8 @@ function CreateVRTextPanels(InfoPanel) {
         width: 1.25,
         contentDirection: "column",
         alignContent: "left",
-        justifyContent: "start"
+        justifyContent: "start",
+        
     });
 
     let TotalHeight;
@@ -445,10 +512,18 @@ function CreateVRTextPanels(InfoPanel) {
     }
     
     VRTextContainer.height = TotalHeight;
-    VRTextContainer.position.set(0, 1.5, -1.25);
+    VRTextContainer.position.set(0, 1.25
+        , -0.75);
     VRTextContainer.rotateX(-Math.PI * 0.0625);
+    VRTextContainer.scale.set(0.5, 0.5, 0.5);
     VRTextContainer.name = "TextPanel";
     CamDolly.add(VRTextContainer);
+
+    gsap.fromTo(VRTextContainer.scale,
+        {y: 0},
+        {y: 0.5,
+        duration: 0.5}
+    );
 
 }
 
@@ -900,11 +975,7 @@ function OnPointerClick(event) {
     //     panel.classList.remove("open");
     // });
 
-    CamDolly.children.forEach(function(child) {
-        if (child.name === "TextPanel") {
-            child.parent.remove(child);
-        }
-    });
+    RemoveInfoPanels();
 
     if (GLRenderer.xr.isPresenting) {
         Intersects = VRRaycaster.intersectObject(SelectorBlocks, true);
@@ -948,6 +1019,26 @@ function OnPointerClick(event) {
     }
 }
 
+function RemoveInfoPanels() {
+    
+    let PanelStorage;
+
+    CamDolly.children.forEach(function(child) {
+        if (child.name === "TextPanel") {
+            PanelStorage = child;
+            gsap.to(PanelStorage.scale,{
+                y: 0,
+                duration: 0.25,
+                onComplete: function() {
+                    PanelStorage.parent.remove(child);
+                    }
+                }
+            ); // gsap to
+        } // if name
+    });
+
+}
+
 function ClickMeshObjects(event) {
     if (!GLRenderer.xr.isPresenting || VRRaycaster === null) {
         return;
@@ -959,15 +1050,10 @@ function ClickMeshObjects(event) {
     //     panel.classList.remove("open");
     // });
 
-    CamDolly.children.forEach(function(child) {
-        if (child.name === "TextPanel") {
-            child.parent.remove(child);
-        }
-    });
+    // RemoveInfoPanels();
 
     if (Intersects.length > 0) {
         CreateVRTextPanels(Intersects[0].object.infopanel);
-        console.log(CamDolly)
         // Intersects[0].object.infopanel.classList.add("open");
     }
 
@@ -1131,6 +1217,7 @@ window.addEventListener('resize', function(){
 
 });
 
+GLRenderer.xr.addEventListener("sessionstart", CreateIntroPanel);
 ContactButton.addEventListener("pointerup", OpenContact);
 
 // Animation loop
