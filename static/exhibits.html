@@ -10,29 +10,96 @@
     <title>Steven M. Caruso // Creative Director & Technologist // Experiential & Exhibit Design</title>
 </head>
 <body>
-    <div class="titlebar">
-        <div class="logo"><img src="/images/smclogo.png" width=32em></div>
-        <div class="title"><span class="titlename">Steven M. Caruso</span> Design Studio</div>
-    </div>
-    <div class="infopanel open newpage">
-        <h1>Interactive Exhibit Portfolio</h1>
-        <iframe src="https://portal.furioos.com/embed/512.168?whiteLabel=true&hideTitle=true&autoRun=true" width="1920px" height="1080px" allowfullscreen="true" style="border: none;"></iframe>
-        <h3>Allow a minute for the exhibit to load.</h3>
-        <p>
+    <div class="header">
+        <img src="/images/smclogo.png" class="logo" alt="logo">
+        <div class="titleblock">
+          <span class="titlename">
+          Steven M. Caruso
+        </span><br>
+        <span class="subtitle">
+          Design Studio
+        </span>      
+        </div>
+    </div> <!-- header !-->
+    <div class="pagecontent">
+        <div class="article">
+        <h1>
+          Interactive Exhibit Portfolio
+          </h1>
+          <div class="interactive">    
+            <iframe src="https://portal.furioos.com/embed/512.168?whiteLabel=true&hideTitle=true&autoRun=true" allowfullscreen="true" style="border: none;"></iframe> 
+         </div> <!-- interactive !-->
+          <h3>
+         Allow a minute for the exhibit to load.
+          </h3>
+          <p>
             This virtual exhibit of real exhibits is rendered remotely on a server and delivered to your browser as streaming video. It's still fully interactive—click around and explore! If you have a computer capable of rendering high-quality realtime 3D graphics, you can download the application and run it locally:
+          </p>
+          <div class="linksbar">
+              <a href="https://drive.google.com/file/d/1JFSY8NZY6uuxa4u3cw4lKsJtGQBEWi8B/view?usp=sharing" class="dllink left"">
+                Download for Windows 10 // 476MB EXE Installer
+              </a> <!-- links left !-->
+    
+            <a href="https://drive.google.com/file/d/1IoWv3jvdFVm7IwHXn4pZILDciTBQJ2y2/view?usp=sharing" class="dllink right">
+              Download for macOS 10.14+ // 903MB DMG Installer
+            </a>  <!--links right !-->
+          </div><!-- links bar !-->
+    
+            <ul>
+                <li>
+                    Windows: run the installer and follow its steps. The app will install to Program Files by default and appear in the Start Menu as SMC Portfolio Exhibit. If you need to, the app can be uninstalled through the Add/Remove Programs control panel.
+                </li>
+                <li>
+                    Mac: mount the DMG disk image and drag the app icon into your Applications folder. If you’ve set your Mac to only allow App Store applications to run, you may need to give it special permission in System Preferences.
+                </li>
+            </ul>
+        </div> <!-- article !-->
+        <div class="footer">
+              &copy; 2020-2021 SMCARUSO INC. <a href="https://www.smcaruso.com/vr/" target="_blank">Try this website in Virtual Reality</a>!
+            </div>
+        </div> <!-- pagecontent !-->
+    
+        <div class="contact">
+            <h1>@</h1>
+        </div>
+    
+        <div class="infopanel" id="Contact">
+            <h1>Contact</h1>
+            <p>Let's simultaneously drink coffees and talk about creative technology and experiential design over the internet—or, if you're in or around New York City, maybe even in person!</p>
+            <h3>SMCARUSO INC.</h3>
+            <p>
+                Steven M. Caruso<br>
+                44 Turner Place, Ste. 1<br>
+                Brooklyn, NY 11218
+            </p>
+            <h3>Email: <a href="mailto:ize@smcaruso.com">ize@smcaruso.com</a></h3>
+            <h3>Phone: 917 524 9244</h3>
+            <p>
+            <a href="https://www.instagram.com/smcaruso/" target="_blank">Instagram</a> // <a href="https://www.linkedin.com/company/steven-m-caruso-design-studio/" target="_blank">LinkedIn</a> // <a href="https://workingnotworking.com/18357-steve" target="_blank">Working Not Working</a> // <a href="https://www.coroflot.com/smcaruso" target="_blank">Coroflot</a>
         </p>
-        <a href="https://drive.google.com/file/d/1OYrvXi2HFn34xp04ye650UwM1sUommqC/view?usp=sharing" class="jumplink">Download for Windows 10 // 476MB EXE Installer</a>
-        <a href="https://drive.google.com/file/d/1TIXb2opsKxcFQ__JL9ObwZymGbGs-dYI/view?usp=sharing" class="jumplink">Download for macOS 10.14+ // 903MB DMG Installer</a>
-        <br><br>
-        <h5>Installation Instructions</h5>
-        <ul>
-            <li>
-                Windows: run the installer and follow its steps. The app will install to Program Files by default and appear in the Start Menu as SMC Portfolio Exhibit. If you need to, the app can be uninstalled through the Add/Remove Programs control panel.
-            </li>
-            <li>
-                Mac: mount the DMG disk image and drag the app icon into your Applications folder. If you’ve set your Mac to only allow App Store applications to run, you may need to give it special permission in System Preferences.
-            </li>
-        </ul>
-    </div>
-</body>
+        </div>
+        <script>
+            const InteractiveFrame = document.querySelector(".interactive");
+            const ContactButton = document.querySelector(".contact");
+            const ContactPanel = document.querySelector("#Contact")
+
+            ResizeInteractiveFrame(); 
+
+            function ResizeInteractiveFrame() {
+                let NewHeight = InteractiveFrame.clientWidth * 0.5625;
+                InteractiveFrame.style.height = `${NewHeight}px`;
+            }
+
+            function ToggleContact() {
+                if (ContactPanel.classList.contains("open")) {
+                    ContactPanel.classList.remove("open")
+                } else {
+                    ContactPanel.classList.add("open");
+                }
+            }
+
+            window.addEventListener('resize', ResizeInteractiveFrame);
+            ContactButton.addEventListener('pointerup', ToggleContact);
+        </script>
+    </body>
 </html>
