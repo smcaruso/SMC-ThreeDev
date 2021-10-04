@@ -15,11 +15,7 @@ html {
     padding: 0;
     margin: 0;
     background-image:
-      linear-gradient(
-        to bottom right,
-        rgb(128,0 ,255),
-        rgb(128, 0, 0)
-     );
+      linear-gradient(to bottom right, rgb(128,0 ,255), rgb(128, 0, 0));
     font-family: 'Poppins', sans-serif;
   }
 
@@ -49,6 +45,45 @@ html {
     vertical-align: middle;
 }
 
+.vrbutton {
+  z-index: 2;
+  position: absolute;
+  bottom: 2em;
+  right: 9em;
+  width: 6em;
+  height: 6em;
+  border-radius: 3em;
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0.25em 0.25em 0.5em rgba(0, 0, 0, 0.5);
+  color: white;
+  font-weight: 800;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.vrbutton h1 {
+  margin-top: 0.75em;
+}
+
+.vrbutton h1 a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.vrbutton p {
+  position: absolute;
+  bottom: 0em;
+  right: 8em;
+  width: 25em;
+  text-align: left;
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0.25em 0.25em 0.5em rgba(0, 0, 0, 0.5);
+  padding: 1em;
+  pointer-events: none;
+  font-weight: 200;
+  visibility: hidden;
+}
+
 .contact h1 {
     margin-top: 0.65em;
 }
@@ -56,6 +91,15 @@ html {
 .contact:hover {
     background-color: rgba(180, 10, 10, 0.5);
     cursor: pointer;
+}
+
+.vrbutton:hover {
+  background-color: rgba(180, 10, 10, 0.5);
+  cursor: pointer;
+}
+
+.vrbutton:hover p {
+  visibility: visible;
 }
 
 .titlebar {
@@ -104,9 +148,12 @@ html {
 
     grid-column-start: 1;
     grid-column-end: 2;
-
-
 }
+
+.titlebar .logo.mainpage img {
+  margin-top: 0;
+}
+
 .titlebar img {
 
     margin-left: 30%;

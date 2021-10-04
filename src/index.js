@@ -737,7 +737,7 @@ function RemoveLoadingScreen() {
             }
         );
         TitleBlock.innerHTML = `
-        <div class="logo"><img src="/images/smclogo.png" width=32em></div>
+        <div class="logo mainpage"><img src="/images/smclogo.png" width=32em></div>
         <div class="title"><span class="titlename">Steven M. Caruso</span> Design Studio</div>
         `;
         TitleBlock.classList.remove("loading");
