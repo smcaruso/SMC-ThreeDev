@@ -485,4 +485,17 @@ html {
         margin-top: 0.75em;
     }
 
+    .vrbutton {
+      bottom: 1em;
+      right: 6em;
+      width: 4em;
+      height: 4em;
+      border-radius: 2em;
+    }
+
+    .vrbutton h1 {
+      font-size: 125%;
+      margin-top: 0.875em;
+    }
+
 }
