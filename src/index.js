@@ -125,12 +125,12 @@ DirLight.castShadow = true;
 Scene.add(DirLight, DirLight.target, GILight);
 
 const ModernUrbanCubeMap = CubeMapLoader.load([
-    '/images/cubemap/px.jpg',
-    '/images/cubemap/nx.jpg',
-    '/images/cubemap/py.jpg',
-    '/images/cubemap/ny.jpg',
-    '/images/cubemap/pz.jpg',
-    '/images/cubemap/nz.jpg'
+    './images/cubemap/px.jpg',
+    './images/cubemap/nx.jpg',
+    './images/cubemap/py.jpg',
+    './images/cubemap/ny.jpg',
+    './images/cubemap/pz.jpg',
+    './images/cubemap/nz.jpg'
 ]);
 
 ModernUrbanCubeMap.encoding = THREE.sRGBEncoding;
@@ -149,14 +149,14 @@ Scene.fog = SceneFog;
 
 const BakedMaterials = new Array();
 
-const PlatformMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("/images/PlatformsBakedFade.jpg")});
-const DesktopMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("/images/DesktopBaked.jpg")});
-const MobileVRMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("/images/MobileVRBaked.jpg")});
-const WebStreamingMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("/images/WebStreamingBaked.jpg")});
-const ARMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("/images/ARBaked.jpg")});
-const ExhibitDesignMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("/images/DesignBaked.jpg")});
-const KioskMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("/images/KioskBaked.jpg")});
-const VRMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("/images/VRBaked.jpg")});
+const PlatformMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("./images/PlatformsBakedFade.jpg")});
+const DesktopMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("./images/DesktopBaked.jpg")});
+const MobileVRMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("./images/MobileVRBaked.jpg")});
+const WebStreamingMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("./images/WebStreamingBaked.jpg")});
+const ARMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("./images/ARBaked.jpg")});
+const ExhibitDesignMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("./images/DesignBaked.jpg")});
+const KioskMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("./images/KioskBaked.jpg")});
+const VRMaterial = new THREE.MeshBasicMaterial({map: TextureLoader.load("./images/VRBaked.jpg")});
 
 BakedMaterials.push(
     PlatformMaterial, 
@@ -193,7 +193,7 @@ AboutSteveClickArea.textOffset = new THREE.Vector3(0, 1, 0);
 MeshObjects.add(AboutSteveClickArea);
 
 GLTFModelLoader.load(
-    "/geometry/platforms.glb",
+    "./geometry/platforms.glb",
     function(model) {
         for (let child of model.scene.children) {
             child.material = PlatformMaterial;
@@ -206,7 +206,7 @@ GLTFModelLoader.load(
 );
 
 GLTFModelLoader.load(
-    "/geometry/desktop.glb",
+    "./geometry/desktop.glb",
     function(model) {
         // model.scene.name = "Macintosh of Brooklyn";
         const StudioItems = [...model.scene.children];
@@ -227,7 +227,7 @@ GLTFModelLoader.load(
 );
 
 GLTFModelLoader.load(
-    "/geometry/mobilevr.glb",
+    "./geometry/mobilevr.glb",
     function(model) {
         model.scene.children[0].material = MobileVRMaterial;
         model.scene.children[0].name = "Mobile Virtual Reality";
@@ -238,7 +238,7 @@ GLTFModelLoader.load(
 );
 
 GLTFModelLoader.load(
-    "/geometry/webstreaming.glb",
+    "./geometry/webstreaming.glb",
     function(model) {
         model.scene.children[0].material = WebStreamingMaterial;
         model.scene.children[0].name = "Interactive 3D Experiences";
@@ -249,7 +249,7 @@ GLTFModelLoader.load(
 );
 
 GLTFModelLoader.load(
-    "/geometry/arbeam.glb",
+    "./geometry/arbeam.glb",
     function(model){
         model.scene.children[0].material = ARMaterial;
         model.scene.children[0].name = "Augmented Reality"
@@ -260,7 +260,7 @@ GLTFModelLoader.load(
 );
 
 GLTFModelLoader.load(
-    "/geometry/exhibitdesign.glb",
+    "./geometry/exhibitdesign.glb",
     function(model) {
         model.scene.children[0].material = ExhibitDesignMaterial;
         model.scene.children[0].name = "Exhibit & Experiential Design";
@@ -271,7 +271,7 @@ GLTFModelLoader.load(
 );
 
 GLTFModelLoader.load(
-    "/geometry/kiosk.glb",
+    "./geometry/kiosk.glb",
     function(model){
         model.scene.children[0].material = KioskMaterial;
         model.scene.children[0].name = "Interactive 3D Installations";
@@ -282,7 +282,7 @@ GLTFModelLoader.load(
 );
 
 GLTFModelLoader.load(
-    "/geometry/vrsetup.glb",
+    "./geometry/vrsetup.glb",
     function(model) {
         model.scene.children[0].material = VRMaterial;
         model.scene.children[0].name = "Virtual Reality Experiences";
@@ -299,7 +299,7 @@ Scene.add(MeshObjects);
 let AnimationContainer = {};
 
 GLTFModelLoader.load(
-    "/geometry/smcanim.glb",
+    "./geometry/smcanim.glb",
     function(model) {
         const Steve = model.scene.children.find(
             function(child) {
@@ -407,7 +407,7 @@ let StudioText, VirtualText, ExpText;
 
 function CreateText() {
     FontLoader.load(
-        "/Poppins_Bold.json",
+        "./Poppins_Bold.json",
         function(PoppinsBold) {
             StudioText = new THREE.Mesh(
                 new THREE.TextGeometry(
